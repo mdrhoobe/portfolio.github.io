@@ -24,7 +24,7 @@
       <p class="tagline">Full Stack Developer · OSINT Researcher · Cybersecurity Enthusiast</p>
 
       <!-- CV download button - generates PDF dynamically from cv.js-->
-      <button id="cv-download-btn" class="cv-download-btn" aria-label="Download CV as PDF">
+<button id="cv-download-btn" class="cv-download-btn" aria-label="Download CV as PDF">
   <span class="cv-btn-icon" aria-hidden="true">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
          stroke="currentColor" stroke-width="2.2"
@@ -35,8 +35,50 @@
     </svg>
   </span>
   <span class="cv-btn-label">Download CV</span>
-  <span class="cv-btn-tag">PDF</span>
+  <span class="cv-btn-tag">PDF · Live</span>
 </button>
+
+<script>
+document.getElementById('cv-download-btn').addEventListener('click', function() {
+  const label = this.querySelector('.cv-btn-label');
+  label.textContent = 'Loading...';
+  this.style.pointerEvents = 'none';
+
+  // تحميل jsPDF ديناميكياً عند الضغط فقط
+  const script = document.createElement('script');
+  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+  script.onload = function() {
+    // بعد تحميل المكتبة، حمّل cv.js
+    const cvScript = document.createElement('script');
+    cvScript.src = 'cv.js?v=' + Date.now(); // منع cache
+    cvScript.onload = function() {
+      label.textContent = 'Generating...';
+      setTimeout(function() {
+        try {
+          generateCV();
+          label.textContent = 'Downloaded ✓';
+          setTimeout(function() {
+            label.textContent = 'Download CV';
+            document.getElementById('cv-download-btn').style.pointerEvents = '';
+          }, 2500);
+        } catch(e) {
+          label.textContent = 'Error — refresh & retry';
+          console.error(e);
+        }
+      }, 100);
+    };
+    document.body.appendChild(cvScript);
+  };
+  script.onerror = function() {
+    label.textContent = 'No internet connection';
+    setTimeout(function() {
+      label.textContent = 'Download CV';
+      document.getElementById('cv-download-btn').style.pointerEvents = '';
+    }, 3000);
+  };
+  document.body.appendChild(script);
+});
+</script>
     </header>
 
     <!-- ── ABOUT ── -->
