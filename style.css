@@ -521,3 +521,8 @@ footer {
   position:       relative;
   z-index:        1;
 }
+button.cv-download-btn {
+background: transparent;
+font-family:'DM Mono',monospace;
+border:  1px solid var(--border);
+}
