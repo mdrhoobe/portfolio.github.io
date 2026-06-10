@@ -104,6 +104,9 @@ const CV_DATA = {
 };
 
 function generateCV() {
+  if (!window.jspdf){ 
+    alert('PDF library not loaded. Please refresh the page and try again.');
+    return;}
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
   const PW = 210, PH = 297, SB = 68;
