@@ -1,9 +1,11 @@
-7/**
- * cv.js — Dynamic CV Generator
- * يولّد PDF في المتصفح مباشرة — لا سيرفر، لا رفع ملفات
- * لتعديل أي معلومة: عدّل CV_DATA فقط
+/**
+ * cv.js — Professional CV Generator (rebuilt)
+ * لتعديل البيانات: غيّر في CV_DATA فقط
  */
 
+// ═══════════════════════════════════════════════════════
+//  البيانات — عدّل هنا فقط
+// ═══════════════════════════════════════════════════════
 const CV_DATA = {
   personal: {
     name:        'Mohammed Drhoobe',
@@ -16,18 +18,18 @@ const CV_DATA = {
     github:      'github.com/yourusername',
     linkedin:    'linkedin.com/in/yourusername',
   },
-  profile: `IT professional with 10+ years of experience in full-stack web development, network infrastructure, and OSINT cyber investigation. Currently serving as Technical Support Specialist at the Libyan Ministry of Interior while building advanced web systems and open-source intelligence tools. Committed to technological advancement and operational excellence.`,
+  profile: 'IT professional with 10+ years of experience in full-stack web development, network infrastructure, and OSINT cyber investigation. Currently serving as Technical Support Specialist at the Libyan Ministry of Interior while building advanced web systems and open-source intelligence tools.',
   experience: [
     {
       title:   'Technical Support Specialist',
-      org:     'Communications Unit — Libyan Ministry of Interior',
+      org:     'Libyan Ministry of Interior — Communications Unit',
       city:    'Tripoli',
       from:    'Jan 2015',
       to:      'Present',
       bullets: [
-        'Rapid resolution of hardware, software, and network issues for staff.',
-        'Diagnose device and network faults; implement timely, effective solutions.',
-        'Execute system upgrades, patches, and security hardening across infrastructure.',
+        'Rapid resolution of hardware, software, and network issues.',
+        'Diagnose faults and implement timely, effective solutions.',
+        'Execute system upgrades, patches, and security hardening.',
         'Coordinate with IT teams on complex incident resolution.',
       ],
     },
@@ -38,9 +40,9 @@ const CV_DATA = {
       from:    'Jan 2017',
       to:      'Jan 2018',
       bullets: [
-        'Installed and configured network devices ensuring continuous connectivity.',
-        'Troubleshot LAN/WAN infrastructure faults with rapid turnaround.',
-        'Conducted network performance audits and capacity assessments.',
+        'Installed and configured network devices for continuous connectivity.',
+        'Troubleshot LAN/WAN faults with rapid turnaround.',
+        'Conducted network performance audits and assessments.',
       ],
     },
   ],
@@ -63,13 +65,13 @@ const CV_DATA = {
   courses: [
     {
       title:   'OSINT Certified Practitioner',
-      org:     'UNODC Regional Centre for Combatting Cybercrime',
+      org:     'UNODC — Regional Centre for Combatting Cybercrime',
       city:    'Doha, Qatar',
       date:    'Feb 2025',
       bullets: [
-        'Open-source data analysis and extraction of actionable intelligence.',
-        'Electronic threat detection using advanced OSINT methodologies.',
-        'Digital forensics, cyber-trail investigation, and pattern analysis.',
+        'Open-source data analysis and intelligence extraction.',
+        'Electronic threat detection using OSINT methodologies.',
+        'Digital forensics and cyber-trail investigation.',
       ],
     },
     {
@@ -80,7 +82,7 @@ const CV_DATA = {
       bullets: [
         'Frontend: HTML5, CSS3, JavaScript. Backend: Node.js.',
         'Database design: MongoDB and MySQL.',
-        'Application security, performance optimisation, and deployment.',
+        'App security, performance optimisation, deployment.',
       ],
     },
   ],
@@ -88,13 +90,11 @@ const CV_DATA = {
     { cat: 'Frontend',    detail: 'React, HTML5, CSS3, JavaScript' },
     { cat: 'Backend',     detail: 'Node.js, REST APIs' },
     { cat: 'Database',    detail: 'MongoDB, MySQL' },
-    { cat: 'OSINT',       detail: 'Open-source intelligence tools & methodology' },
-    { cat: 'Network',     detail: 'Setup, configuration & troubleshooting' },
-    { cat: 'Security',    detail: 'Cybersecurity principles & data protection' },
+    { cat: 'OSINT',       detail: 'Intelligence tools & methodology' },
+    { cat: 'Network',     detail: 'Setup, config & troubleshooting' },
+    { cat: 'Security',    detail: 'Cybersecurity & data protection' },
     { cat: 'Systems',     detail: 'Linux, Bash scripting' },
-    { cat: 'Support',     detail: 'Technical support & IT infrastructure' },
-    { cat: 'Office',      detail: 'Microsoft Office Suite' },
-    { cat: 'Soft Skills', detail: 'Teamwork · Fast learner · Works under pressure' },
+    { cat: 'Soft Skills', detail: 'Teamwork · Fast learner · Pressure-resilient' },
   ],
   languages: [
     { name: 'Arabic',  level: 'Native' },
@@ -103,149 +103,353 @@ const CV_DATA = {
   interests: ['Technical literature', 'Photography', 'Volunteer work', 'Programming'],
 };
 
+// ═══════════════════════════════════════════════════════
+//  PDF GENERATOR
+// ═══════════════════════════════════════════════════════
 function generateCV() {
-  if (!window.jspdf){ 
-    alert('PDF library not loaded. Please refresh the page and try again.');
-    return;}
+  if (!window.jspdf) { alert('PDF library not loaded. Please refresh.'); return; }
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-  const PW = 210, PH = 297, SB = 68;
-  const MAIN_X = SB + 1, MAIN_W = PW - SB - 8;
-  const C = {
-    dark:   [13,13,13], sidebar:[17,17,17], mainbg:[248,248,248],
-    accent: [200,241,53], white:[255,255,255], mid:[80,80,80],
-    muted:  [140,140,140], rule:[42,42,42], text:[30,30,30],
+  const doc = new jsPDF({ unit: 'mm', format: 'a4', compress: true });
+
+  // ── Page dimensions ──────────────────────────────────
+  const PW   = 210;          // page width
+  const PH   = 297;          // page height
+  const SB_W = 65;           // sidebar width
+  const MN_X = SB_W + 7;    // main content left edge
+  const MN_W = PW - MN_X - 8; // main content width
+  const SB_X = 5;            // sidebar text left edge
+  const SB_TW = SB_W - 10;  // sidebar text max width
+
+  // ── Colours ──────────────────────────────────────────
+  const BG_DARK   = [15,  15,  15];
+  const BG_SIDE   = [22,  22,  22];
+  const BG_MAIN   = [250, 250, 250];
+  const BG_HDR    = [10,  10,  10];
+  const ACCENT    = [200, 241,  53];
+  const WHITE     = [255, 255, 255];
+  const DARK_TEXT = [ 25,  25,  25];
+  const MID_TEXT  = [ 85,  85,  85];
+  const MUTED     = [150, 150, 150];
+  const SIDE_RULE = [ 45,  45,  45];
+
+  // ── Cursor trackers ───────────────────────────────────
+  let y  = 0;   // main column Y
+  let sy = 0;   // sidebar Y
+
+  // ── Colour helpers ────────────────────────────────────
+  const setFill   = c => doc.setFillColor(c[0], c[1], c[2]);
+  const setInk    = c => doc.setTextColor(c[0], c[1], c[2]);
+  const setStroke = c => doc.setDrawColor(c[0], c[1], c[2]);
+
+  const fillRect = (x, yy, w, h, c) => {
+    setFill(c); doc.rect(x, yy, w, h, 'F');
   };
-  let y = 0, sy = 0;
-  const fill   = rgb => doc.setFillColor(...rgb);
-  const ink    = rgb => doc.setTextColor(...rgb);
-  const stroke = rgb => doc.setDrawColor(...rgb);
-  const rect   = (x,w,yy,h,rgb) => { fill(rgb); doc.rect(x,yy,w,h,'F'); };
-  const gap    = h => { y += h; };
-  const sgap   = h => { sy += h; };
 
-  function sectionHead(label) {
-    gap(5);
-    doc.setFontSize(7.5); doc.setFont('helvetica','bold'); ink(C.text);
-    doc.text(label.toUpperCase(), MAIN_X, y);
-    stroke(C.accent); doc.setLineWidth(0.6);
-    doc.line(MAIN_X, y+0.8, MAIN_X+MAIN_W, y+0.8);
-    gap(5);
-  }
-  function sbHead(label) {
-    sgap(4);
-    doc.setFontSize(7); doc.setFont('helvetica','bold'); ink(C.accent);
-    doc.text(label.toUpperCase(), 5, sy);
-    doc.setLineWidth(0.4); stroke(C.rule);
-    doc.line(5, sy+0.8, SB-5, sy+0.8);
-    sgap(4.5);
-  }
-  function bullet(str) {
-    doc.setFontSize(8); doc.setFont('helvetica','normal'); ink(C.mid);
-    doc.text('•', MAIN_X+1, y);
-    const lines = doc.splitTextToSize(str, MAIN_W-5);
-    lines.forEach((l,i) => doc.text(l, MAIN_X+4, y+i*4));
-    gap(lines.length*4+0.5);
-  }
-  function checkPage(n) {
-    if (y+n > PH-10) {
-      doc.addPage();
-      rect(0,SB,0,PH,C.sidebar); rect(SB,PW-SB,0,PH,C.mainbg);
-      fill(C.accent); doc.rect(SB,0,1,PH,'F');
-      y = 10;
-    }
+  // ── Page background ───────────────────────────────────
+  function drawPageBg() {
+    // White main area (full page first, sidebar over it)
+    fillRect(0,   0,  PW,   PH,  BG_MAIN);
+    // Dark sidebar
+    fillRect(0,   0,  SB_W, PH,  BG_SIDE);
+    // Accent divider line between sidebar and main
+    fillRect(SB_W, 0, 0.8,  PH,  ACCENT);
   }
 
-  // Backgrounds
-  rect(0,SB,0,PH,C.sidebar); rect(SB,PW-SB,0,PH,C.mainbg);
-  const HDR_H = 32;
-  rect(0,PW,0,HDR_H,C.dark);
-  fill(C.accent); doc.rect(0,HDR_H,PW,1.5,'F');
-  fill(C.accent); doc.rect(SB,0,1,PH,'F');
+  // ── Header (full width, dark) ─────────────────────────
+  const HDR_H = 30;
+  function drawHeader() {
+    // Header band
+    fillRect(0, 0, PW, HDR_H, BG_HDR);
+    // Accent underline strip
+    fillRect(0, HDR_H, PW, 1.2, ACCENT);
 
-  // Header
-  const d = CV_DATA.personal;
-  doc.setFontSize(22); doc.setFont('helvetica','bold'); ink(C.white);
-  doc.text(d.name, 8, 14);
-  doc.setFontSize(8); doc.setFont('helvetica','normal'); ink(C.accent);
-  doc.text(d.role, 8, 21);
-  doc.setFontSize(7.5); ink(C.muted);
-  const R = PW-8;
-  doc.text(d.email, R, 13, {align:'right'});
-  doc.text(d.phone, R, 18, {align:'right'});
-  doc.text(d.location, R, 23, {align:'right'});
+    const d = CV_DATA.personal;
 
-  // Sidebar
-  sy = HDR_H+8;
-  sbHead('Personal');
-  [['Date of Birth',d.dob],['Nationality',d.nationality],['GitHub',d.github],['LinkedIn',d.linkedin]]
-    .forEach(([k,v]) => {
-      doc.setFontSize(7); doc.setFont('helvetica','bold'); ink(C.muted); doc.text(k,5,sy); sgap(3.5);
-      doc.setFontSize(8); doc.setFont('helvetica','normal'); ink(C.white);
-      const ls = doc.splitTextToSize(v, SB-10);
-      ls.forEach((l,i) => doc.text(l,5,sy+i*3.8)); sgap(ls.length*3.8+1);
+    // Name — left side
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    setInk(WHITE);
+    // Constrain name to left 120mm to avoid overflow
+    const nameLines = doc.splitTextToSize(d.name, 120);
+    nameLines.forEach((line, i) => {
+      doc.text(line, SB_X, 11 + i * 8);
     });
-  sbHead('Languages');
-  CV_DATA.languages.forEach(({name,level}) => {
-    doc.setFontSize(8.5); doc.setFont('helvetica','bold'); ink(C.white); doc.text(name,5,sy); sgap(3.5);
-    doc.setFontSize(7.5); doc.setFont('helvetica','normal'); ink(C.accent); doc.text(level,5,sy); sgap(4);
+
+    // Role — left side, below name
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'normal');
+    setInk(ACCENT);
+    const roleLines = doc.splitTextToSize(d.role, 130);
+    roleLines.forEach((line, i) => {
+      doc.text(line, SB_X, 21 + i * 4);
+    });
+
+    // Contact — right side, aligned right
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'normal');
+    setInk(MUTED);
+    const rightX = PW - 6;
+    doc.text(d.email,    rightX, 11, { align: 'right' });
+    doc.text(d.phone,    rightX, 16, { align: 'right' });
+    doc.text(d.location, rightX, 21, { align: 'right' });
+  }
+
+  // ── Sidebar section heading ───────────────────────────
+  function sbSection(label) {
+    sy += 5;
+    doc.setFontSize(6.5);
+    doc.setFont('helvetica', 'bold');
+    setInk(ACCENT);
+    doc.text(label.toUpperCase(), SB_X, sy);
+    sy += 1.5;
+    setStroke(SIDE_RULE);
+    doc.setLineWidth(0.3);
+    doc.line(SB_X, sy, SB_W - 5, sy);
+    sy += 4;
+  }
+
+  // ── Main section heading ──────────────────────────────
+  function mnSection(label) {
+    y += 6;
+    // Accent left bar
+    fillRect(MN_X - 4, y - 4, 2, 5, ACCENT);
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'bold');
+    setInk(DARK_TEXT);
+    doc.text(label.toUpperCase(), MN_X, y);
+    y += 1;
+    setStroke([210, 210, 210]);
+    doc.setLineWidth(0.3);
+    doc.line(MN_X, y, MN_X + MN_W, y);
+    y += 5;
+  }
+
+  // ── Bullet point (main) ───────────────────────────────
+  function bullet(text) {
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    setInk(MID_TEXT);
+    const lines = doc.splitTextToSize(text, MN_W - 6);
+    doc.text('•', MN_X + 1, y);
+    lines.forEach((line, i) => {
+      doc.text(line, MN_X + 5, y + i * 3.8);
+    });
+    y += lines.length * 3.8 + 1;
+  }
+
+  // ── New page with backgrounds ─────────────────────────
+  function newPage() {
+    doc.addPage();
+    drawPageBg();
+    y  = 12;
+    sy = 12;  // sidebar continues from top on page 2
+  }
+
+  // ── Page overflow check ───────────────────────────────
+  function checkY(needed) {
+    if (y + needed > PH - 12) newPage();
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  DRAW PAGE 1
+  // ═══════════════════════════════════════════════════════
+  drawPageBg();
+  drawHeader();
+
+  // ── Starting Y positions (below header) ───────────────
+  y  = HDR_H + 9;
+  sy = HDR_H + 8;
+
+  // ═══════════════════════════════════════════════════════
+  //  SIDEBAR CONTENT
+  // ═══════════════════════════════════════════════════════
+
+  // Personal
+  sbSection('Personal');
+  const personalItems = [
+    ['Date of Birth', CV_DATA.personal.dob],
+    ['Nationality',   CV_DATA.personal.nationality],
+    ['GitHub',        CV_DATA.personal.github],
+    ['LinkedIn',      CV_DATA.personal.linkedin],
+  ];
+  personalItems.forEach(([key, val]) => {
+    doc.setFontSize(6.5);
+    doc.setFont('helvetica', 'bold');
+    setInk(MUTED);
+    doc.text(key.toUpperCase(), SB_X, sy);
+    sy += 3.5;
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'normal');
+    setInk(WHITE);
+    const lines = doc.splitTextToSize(val, SB_TW);
+    lines.forEach((l, i) => doc.text(l, SB_X, sy + i * 3.6));
+    sy += lines.length * 3.6 + 2.5;
   });
-  sbHead('Skills');
-  CV_DATA.skills.forEach(({cat,detail}) => {
-    doc.setFontSize(7.5); doc.setFont('helvetica','bold'); ink(C.accent); doc.text(cat,5,sy); sgap(3.5);
-    doc.setFontSize(7.5); doc.setFont('helvetica','normal'); ink(C.white);
-    const ls = doc.splitTextToSize(detail, SB-10);
-    ls.forEach((l,i) => doc.text(l,7,sy+i*3.6)); sgap(ls.length*3.6+1.5);
+
+  // Languages
+  sbSection('Languages');
+  CV_DATA.languages.forEach(({ name, level }) => {
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'bold');
+    setInk(WHITE);
+    doc.text(name, SB_X, sy);
+    sy += 3.8;
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    setInk(ACCENT);
+    doc.text(level, SB_X, sy);
+    sy += 4.5;
   });
-  sbHead('Interests');
+
+  // Skills
+  sbSection('Skills');
+  CV_DATA.skills.forEach(({ cat, detail }) => {
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    setInk(ACCENT);
+    doc.text(cat, SB_X, sy);
+    sy += 3.5;
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    setInk([200, 200, 200]);
+    const lines = doc.splitTextToSize(detail, SB_TW);
+    lines.forEach((l, i) => doc.text(l, SB_X, sy + i * 3.4));
+    sy += lines.length * 3.4 + 2;
+  });
+
+  // Interests
+  sbSection('Interests');
   CV_DATA.interests.forEach(item => {
-    doc.setFontSize(8); doc.setFont('helvetica','normal'); ink(C.white);
-    doc.text(`· ${item}`,5,sy); sgap(4);
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'normal');
+    setInk([190, 190, 190]);
+    doc.text(`· ${item}`, SB_X, sy);
+    sy += 4;
   });
 
-  // Main
-  y = HDR_H+8;
-  sectionHead('Profile');
-  doc.setFontSize(8.5); doc.setFont('helvetica','normal'); ink(C.mid);
-  doc.splitTextToSize(CV_DATA.profile.replace(/\n/g,' '), MAIN_W)
-     .forEach(l => { doc.text(l,MAIN_X,y); gap(4); });
-  gap(3);
+  // ═══════════════════════════════════════════════════════
+  //  MAIN CONTENT
+  // ═══════════════════════════════════════════════════════
 
-  sectionHead('Experience');
+  // Profile
+  mnSection('Profile');
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'normal');
+  setInk(MID_TEXT);
+  const profileLines = doc.splitTextToSize(CV_DATA.profile, MN_W);
+  profileLines.forEach(l => { doc.text(l, MN_X, y); y += 4; });
+  y += 2;
+
+  // Experience
+  mnSection('Experience');
   CV_DATA.experience.forEach(job => {
-    checkPage(20);
-    doc.setFontSize(9.5); doc.setFont('helvetica','bold'); ink(C.text);
-    doc.text(job.title, MAIN_X, y); gap(4.5);
-    doc.setFontSize(8); doc.setFont('helvetica','normal'); ink(C.mid);
-    doc.text(`${job.org}${job.city?', '+job.city:''}`, MAIN_X, y); gap(4);
-    doc.setFontSize(7.5); doc.setFont('helvetica','italic'); ink(C.muted);
-    doc.text(`${job.from} — ${job.to}`, MAIN_X, y); gap(4.5);
-    job.bullets.forEach(b => { checkPage(8); bullet(b); }); gap(3);
+    checkY(28);
+    // Title
+    doc.setFontSize(9.5);
+    doc.setFont('helvetica', 'bold');
+    setInk(DARK_TEXT);
+    doc.text(job.title, MN_X, y);
+    y += 4.5;
+    // Org + city
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    setInk(MID_TEXT);
+    const orgText = job.city ? `${job.org}, ${job.city}` : job.org;
+    const orgLines = doc.splitTextToSize(orgText, MN_W);
+    orgLines.forEach(l => { doc.text(l, MN_X, y); y += 3.8; });
+    // Date — with accent left dot
+    fillRect(MN_X, y - 2, 1.5, 1.5, ACCENT);
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'italic');
+    setInk(MUTED);
+    doc.text(`${job.from} — ${job.to}`, MN_X + 3, y);
+    y += 4.5;
+    // Bullets
+    job.bullets.forEach(b => { checkY(8); bullet(b); });
+    y += 3;
   });
 
-  sectionHead('Education');
+  // Education
+  mnSection('Education');
   CV_DATA.education.forEach(edu => {
-    checkPage(16);
-    doc.setFontSize(9.5); doc.setFont('helvetica','bold'); ink(C.text);
-    doc.text(edu.degree, MAIN_X, y); gap(4.5);
-    doc.setFontSize(8); doc.setFont('helvetica','normal'); ink(C.mid);
-    doc.text(`${edu.org}${edu.city?', '+edu.city:''}`, MAIN_X, y); gap(4);
-    doc.setFontSize(7.5); doc.setFont('helvetica','italic'); ink(C.muted);
-    doc.text(edu.from?`${edu.from} — ${edu.to}`:edu.to, MAIN_X, y); gap(5);
+    checkY(18);
+    doc.setFontSize(9.5);
+    doc.setFont('helvetica', 'bold');
+    setInk(DARK_TEXT);
+    const degLines = doc.splitTextToSize(edu.degree, MN_W);
+    degLines.forEach(l => { doc.text(l, MN_X, y); y += 4.5; });
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    setInk(MID_TEXT);
+    const eduOrg = edu.city ? `${edu.org}, ${edu.city}` : edu.org;
+    const eduOrgLines = doc.splitTextToSize(eduOrg, MN_W);
+    eduOrgLines.forEach(l => { doc.text(l, MN_X, y); y += 3.8; });
+    fillRect(MN_X, y - 2, 1.5, 1.5, ACCENT);
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'italic');
+    setInk(MUTED);
+    const dateStr = edu.from ? `${edu.from} — ${edu.to}` : edu.to;
+    doc.text(dateStr, MN_X + 3, y);
+    y += 6;
   });
 
-  sectionHead('Courses & Certifications');
+  // Courses & Certifications
+  mnSection('Courses & Certifications');
   CV_DATA.courses.forEach(crs => {
-    checkPage(20);
-    doc.setFontSize(9.5); doc.setFont('helvetica','bold'); ink(C.text);
-    doc.text(crs.title, MAIN_X, y); gap(4.5);
-    doc.setFontSize(8); doc.setFont('helvetica','normal'); ink(C.mid);
-    doc.text(`${crs.org}${crs.city?', '+crs.city:''}`, MAIN_X, y); gap(4);
-    doc.setFontSize(7.5); doc.setFont('helvetica','italic'); ink(C.muted);
-    doc.text(crs.date, MAIN_X, y); gap(4.5);
-    crs.bullets.forEach(b => { checkPage(8); bullet(b); }); gap(3);
+    checkY(28);
+    doc.setFontSize(9.5);
+    doc.setFont('helvetica', 'bold');
+    setInk(DARK_TEXT);
+    doc.text(crs.title, MN_X, y);
+    y += 4.5;
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    setInk(MID_TEXT);
+    const crsOrg = crs.city ? `${crs.org}, ${crs.city}` : crs.org;
+    const crsOrgLines = doc.splitTextToSize(crsOrg, MN_W);
+    crsOrgLines.forEach(l => { doc.text(l, MN_X, y); y += 3.8; });
+    fillRect(MN_X, y - 2, 1.5, 1.5, ACCENT);
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'italic');
+    setInk(MUTED);
+    doc.text(crs.date, MN_X + 3, y);
+    y += 4.5;
+    crs.bullets.forEach(b => { checkY(8); bullet(b); });
+    y += 3;
   });
 
+  // ── Save ─────────────────────────────────────────────
   doc.save('Mohammed_Drhoobe_CV.pdf');
 }
 
+// ── Button wiring ────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const cvBtn = document.getElementById('cv-download-btn');
+  if (!cvBtn) return;
+  cvBtn.addEventListener('click', e => {
+    e.preventDefault();
+    const label = cvBtn.querySelector('.cv-btn-label');
+    const orig  = label.textContent;
+    label.textContent    = 'Generating...';
+    cvBtn.style.pointerEvents = 'none';
+    setTimeout(() => {
+      try {
+        generateCV();
+        label.textContent       = 'Downloaded ✓';
+        cvBtn.style.borderColor = 'var(--accent)';
+        setTimeout(() => {
+          label.textContent         = orig;
+          cvBtn.style.pointerEvents = '';
+          cvBtn.style.borderColor   = '';
+        }, 2500);
+      } catch (err) {
+        console.error('CV error:', err);
+        label.textContent = 'Error — try again';
+        setTimeout(() => {
+          label.textContent         = orig;
+          cvBtn.style.pointerEvents = '';
+        }, 2000);
+      }
+    }, 60);
+  });
+});
