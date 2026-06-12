@@ -1,241 +1,133 @@
-const TOAST_DURATION_MS = 2200;
-const STAGGER_MS = 60;
+document.addEventListener('DOMContentLoaded', function() {
 
-const yearSpan   = document.getElementById('year');
-const toast      = document.getElementById('copied-toast');
-const toastText  = document.getElementById('toast-text');
-const contactBtn = document.getElementById('btn');
-const contactPanel = document.getElementById('contact-panel');
-const socialBtn  = document.getElementById('social-btn');
-const socialPanel = document.getElementById('social-panel');
+  // ── Year ──────────────────────────────────────────
+  var yearSpan = document.getElementById('year');
+  if (yearSpan) yearSpan.textContent = new Date().getFullYear();
 
-yearSpan.textContent = new Date().getFullYear();
+  // ── Toast ─────────────────────────────────────────
+  var toast     = document.getElementById('copied-toast');
+  var toastText = document.getElementById('toast-text');
 
-function togglePanel(btn, panel, openLabel, closeLabel) {
-  const isOpen = panel.classList.contains('open');
-  if (isOpen) {
-    panel.classList.remove('open');
-    btn.classList.remove('open');
-    btn.setAttribute('aria-expanded', 'false');
-    btn.querySelector('.btn-label').textContent = closeLabel;
-    panel.querySelectorAll('.contact-item').forEach(item => {
-      item.classList.remove('visible');
+  function showToast(label) {
+    toastText.textContent = label + ' copied ✓';
+    toast.classList.add('show');
+    setTimeout(function() { toast.classList.remove('show'); }, 2200);
+  }
+
+  function copyText(text, label) {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(function() {
+        showToast(label);
+      }).catch(function() {
+        fallback(text, label);
+      });
+    } else {
+      fallback(text, label);
+    }
+  }
+
+  function fallback(text, label) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); showToast(label); } catch(e) {}
+    document.body.removeChild(ta);
+  }
+
+  // ── Copyable items ────────────────────────────────
+  document.querySelectorAll('.copyable').forEach(function(item) {
+    item.addEventListener('click', function() {
+      copyText(item.dataset.copy, item.dataset.label || 'Value');
     });
-  } else {
-    panel.classList.add('open');
-    btn.classList.add('open');
-    btn.setAttribute('aria-expanded', 'true');
-    btn.querySelector('.btn-label').textContent = openLabel;
-    panel.querySelectorAll('.contact-item').forEach((item, index) => {
-      setTimeout(() => item.classList.add('visible'), index * STAGGER_MS);
+  });
+
+  // ── Panel toggle ──────────────────────────────────
+  function setupToggle(btnId, panelId, openLabel, closeLabel) {
+    var btn   = document.getElementById(btnId);
+    var panel = document.getElementById(panelId);
+    if (!btn || !panel) return;
+
+    // wrap text in span
+    btn.innerHTML =
+      '<span class="btn-label">' + closeLabel + '</span>' +
+      '<span class="btn-arrow" aria-hidden="true">→</span>';
+
+    btn.addEventListener('click', function() {
+      var isOpen = panel.classList.contains('open');
+
+      if (isOpen) {
+        panel.classList.remove('open');
+        btn.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+        btn.querySelector('.btn-label').textContent = closeLabel;
+        panel.querySelectorAll('.contact-item').forEach(function(el) {
+          el.classList.remove('visible');
+        });
+      } else {
+        panel.classList.add('open');
+        btn.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+        btn.querySelector('.btn-label').textContent = openLabel;
+        panel.querySelectorAll('.contact-item').forEach(function(el, i) {
+          setTimeout(function() { el.classList.add('visible'); }, i * 60);
+        });
+      }
     });
   }
-}
 
-contactBtn.addEventListener('click', () => {
-  togglePanel(contactBtn, contactPanel, 'Hide contact', 'Get in touch');
-});
+  setupToggle('btn',        'contact-panel', 'Hide contact',  'Get in touch');
+  setupToggle('social-btn', 'social-panel',  'Hide profiles', 'View profiles');
 
-socialBtn.addEventListener('click', () => {
-  togglePanel(socialBtn, socialPanel, 'Hide profiles', 'View profiles');
-});
+  // ── CV Download ───────────────────────────────────
+  var cvBtn = document.getElementById('cv-download-btn');
+  if (!cvBtn) return;
 
-function copyToClipboard(text, label) {
-  navigator.clipboard.writeText(text)
-    .then(() => showToast(label))
-    .catch(() => fallbackCopy(text, label));
-}
+  cvBtn.addEventListener('click', function() {
+    var label = cvBtn.querySelector('.cv-btn-label');
+    var orig  = label.textContent;
+    label.textContent         = 'Loading...';
+    cvBtn.style.pointerEvents = 'none';
 
-function fallbackCopy(text, label) {
-  const ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none;';
-  document.body.appendChild(ta);
-  ta.select();
-  try { document.execCommand('copy'); showToast(label); }
-  catch (e) { console.error('Copy failed:', e); }
-  document.body.removeChild(ta);
-}
+    function afterLoad() {
+      label.textContent = 'Generating...';
+      setTimeout(function() {
+        try {
+          generateCV();
+          label.textContent       = 'Downloaded ✓';
+          cvBtn.style.borderColor = 'var(--accent)';
+          setTimeout(function() {
+            label.textContent         = orig;
+            cvBtn.style.pointerEvents = '';
+            cvBtn.style.borderColor   = '';
+          }, 2500);
+        } catch(e) {
+          console.error(e);
+          label.textContent = 'Error — try again';
+          setTimeout(function() {
+            label.textContent         = orig;
+            cvBtn.style.pointerEvents = '';
+          }, 2000);
+        }
+      }, 100);
+    }
 
-function showToast(label) {
-  toastText.textContent = `${label} copied to clipboard ✓`;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), TOAST_DURATION_MS);
-}
-
-document.querySelectorAll('.copyable').forEach(item => {
-  const text  = item.dataset.copy;
-  const label = item.dataset.label || 'Value';
-  item.addEventListener('click', () => copyToClipboard(text, label));
-  item.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      copyToClipboard(text, label);
+    if (window.jspdf) {
+      afterLoad();
+    } else {
+      var s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      s.onload  = afterLoad;
+      s.onerror = function() {
+        label.textContent = 'No internet — try again';
+        setTimeout(function() {
+          label.textContent         = orig;
+          cvBtn.style.pointerEvents = '';
+        }, 3000);
+      };
+      document.body.appendChild(s);
     }
   });
+
 });
-
-[
-  { btn: contactBtn, label: 'Get in touch' },
-  { btn: socialBtn,  label: 'View profiles' },
-].forEach(({ btn, label }) => {
-  btn.innerHTML =
-    `<span class="btn-label">${label}</span>` +
-    `<span class="btn-arrow" aria-hidden="true">→</span>`;
-});
-yearSpan.textContent = new Date().getFullYear();
-
-// ─── 2 & 3. Panel Toggle Logic ───────────────────────────────────────────────
-
-/**
- * Toggles a panel open or closed.
- * - Adds/removes .open on both the button and the panel.
- * - Updates aria-expanded on the button for accessibility.
- * - On open: stagger-animates each child item.
- * - On close: removes .visible from all items so they re-animate next open.
- *
- * @param {HTMLElement} btn    — The toggle button element.
- * @param {HTMLElement} panel  — The collapsible panel element.
- * @param {string}      openLabel  — Button label when panel is open.
- * @param {string}      closeLabel — Button label when panel is closed.
- */
-function togglePanel(btn, panel, openLabel, closeLabel) {
-  const isOpen = panel.classList.contains('open');
-
-  if (isOpen) {
-    // ── CLOSE ──
-    panel.classList.remove('open');
-    btn.classList.remove('open');
-    btn.setAttribute('aria-expanded', 'false');
-    btn.querySelector('.btn-label').textContent = closeLabel;
-
-    // Remove .visible from all items (resets for next open)
-    panel.querySelectorAll('.contact-item').forEach(item => {
-      item.classList.remove('visible');
-    });
-
-  } else {
-    // ── OPEN ──
-    panel.classList.add('open');
-    btn.classList.add('open');
-    btn.setAttribute('aria-expanded', 'true');
-    btn.querySelector('.btn-label').textContent = openLabel;
-
-    // Stagger each item's entrance animation
-    const items = panel.querySelectorAll('.contact-item');
-    items.forEach((item, index) => {
-      setTimeout(() => item.classList.add('visible'), index * STAGGER_MS);
-    });
-  }
-}
-
-// Wire up Contact button
-contactBtn.addEventListener('click', () => {
-  togglePanel(contactBtn, contactPanel, 'Hide contact', 'Get in touch');
-});
-
-// Wire up Profiles button
-socialBtn.addEventListener('click', () => {
-  togglePanel(socialBtn, socialPanel, 'Hide profiles', 'View profiles');
-});
-
-// ─── 4 & 5. Clipboard Copy ───────────────────────────────────────────────────
-
-/**
- * Copies the given text to the clipboard.
- * Uses the modern Clipboard API with a textarea fallback for older browsers.
- *
- * @param {string} text  — The text to copy.
- * @param {string} label — Human-readable label shown in the toast (e.g. "Email").
- */
-function copyToClipboard(text, label) {
-  navigator.clipboard.writeText(text)
-    .then(() => showToast(label))
-    .catch(() => {
-      fallbackCopy(text, label);
-    });
-}
-
-/**
- * Legacy clipboard copy using document.execCommand('copy').
- * @param {string} text
- * @param {string} label
- */
-function fallbackCopy(text, label) {
-  const ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none;';
-  document.body.appendChild(ta);
-  ta.select();
-  try {
-    document.execCommand('copy');
-    showToast(label);
-  } catch (e) {
-    console.error('Clipboard copy failed:', e);
-  }
-  document.body.removeChild(ta);
-}
-
-// ─── 6. Toast Helper ─────────────────────────────────────────────────────────
-
-/**
- * Shows the toast with a dynamic label, then hides it after TOAST_DURATION_MS.
- * @param {string} label — e.g. "Email", "Phone"
- */
-function showToast(label) {
-  toastText.textContent = `${label} copied to clipboard ✓`;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), TOAST_DURATION_MS);
-}
-
-// ─── 7. Attach Copy Listeners to All Copyable Items ─────────────────────────
-
-/**
- * Selects every element with [data-copy] and attaches:
- *  - click → copy
- *  - keydown (Enter / Space) → copy   (keyboard accessibility)
- *
- * data-copy  = the text to copy to clipboard
- * data-label = the label shown in the toast notification
- */
-document.querySelectorAll('.copyable').forEach(item => {
-  const text  = item.dataset.copy;
-  const label = item.dataset.label || 'Value';
-
-  item.addEventListener('click', () => copyToClipboard(text, label));
-
-  item.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      copyToClipboard(text, label);
-    }
-  });
-});
-
-// ─── Fix button inner HTML to include .btn-label span ────────────────────────
-// This runs once on load to wrap the text node inside a span
-// so togglePanel() can update just the label without destroying the arrow.
-
-[
-  { btn: contactBtn, label: 'Get in touch' },
-  { btn: socialBtn,  label: 'View profiles' },
-].forEach(({ btn, label }) => {
-  btn.innerHTML =
-    `<span class="btn-label">${label}</span>` +
-    `<span class="btn-arrow" aria-hidden="true">→</span>`;
-});
-
-
-const themeBtn = document.getElementById("theme-toggle");
-
-if (themeBtn) {
-  themeBtn.addEventListener("click", () => {
-    const current = document.body.getAttribute("data-theme");
-    const next = current === "light" ? "dark" : "light";
-    document.body.setAttribute("data-theme", next);
-    localStorage.setItem("theme", next);
-  });
-
-  const saved = localStorage.getItem("theme");
-  if (saved) document.body.setAttribute("data-theme", saved);
-}
