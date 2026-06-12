@@ -517,3 +517,14 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
 });
+
+// Position dropdown using fixed coordinates
+function positionMenu() {
+  var rect = trigger.getBoundingClientRect();
+  menu.style.top  = (rect.bottom + 8) + 'px';
+  menu.style.left = rect.left + 'px';
+}
+trigger.addEventListener('click', positionMenu);
+window.addEventListener('scroll', function() {
+  if (menu.classList.contains('open')) positionMenu();
+}, { passive: true });
