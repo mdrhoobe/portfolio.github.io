@@ -25,7 +25,7 @@ const CV_DATA = {
     phone:       '+218 91 787 5051',
     location:    'Tripoli, Libya',
     // PDF-only fields (not shown on website)
-    dob:         '16 February 1998',
+    dob:         '1998',
     nationality: 'Libyan',
     github:      'github.com/mdrhoobe',
     linkedin:    'linkedin.com/in/mdrhoobe',
