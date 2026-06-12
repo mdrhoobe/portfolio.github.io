@@ -526,3 +526,43 @@ background: transparent;
 font-family:'DM Mono',monospace;
 border:  1px solid var(--border);
 }
+
+/* ── CV CONTROLS BAR ── */
+.cv-controls-bar {
+  display:   flex;
+  gap:       10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.cv-toggle-group {
+  display:       flex;
+  gap:           4px;
+  background:    var(--tag-bg);
+  border:        1px solid var(--border);
+  border-radius: 2px;
+  padding:       3px;
+}
+
+.cv-toggle {
+  padding:        5px 12px;
+  font-family:    'DM Mono', monospace;
+  font-size:      10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background:     transparent;
+  border:         none;
+  border-radius:  2px;
+  color:          var(--muted);
+  cursor:         pointer;
+  transition:     background 0.15s, color 0.15s;
+}
+
+.cv-toggle.active {
+  background: var(--accent);
+  color:      #0a0a0a;
+}
+
+.cv-toggle:hover:not(.active) {
+  color: var(--text);
+}
