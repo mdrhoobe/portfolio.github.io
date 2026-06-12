@@ -997,3 +997,45 @@ body {
   background: var(--bg);
   color: var(--text);
 }
+
+/* ── CV Language Bar ── */
+.cv-lang-bar {
+  display:     flex;
+  align-items: center;
+  gap:         6px;
+  margin-top:  12px;
+  flex-wrap:   wrap;
+}
+
+.cv-lang-label {
+  font-size:      10px;
+  color:          var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-right:   4px;
+}
+
+.cv-lang-btn {
+  padding:        5px 12px;
+  font-family:    'DM Mono', monospace;
+  font-size:      10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background:     var(--tag-bg);
+  border:         1px solid var(--border);
+  border-radius:  2px;
+  color:          var(--muted);
+  cursor:         pointer;
+  transition:     all 0.15s;
+}
+
+.cv-lang-btn.active {
+  background:   var(--accent);
+  border-color: var(--accent);
+  color:        #0a0a0a;
+}
+
+.cv-lang-btn:hover:not(.active) {
+  border-color: var(--accent);
+  color:        var(--text);
+}
